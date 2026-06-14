@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0e0e10">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MINGO MORSE">
+<link id="appleIcon" rel="apple-touch-icon" href="">
+<title>MINGO MORSE</title>
+<style>
+  :root {
+    --bg: #0e0e10;
+    --panel: #17151c;
+    --ink: #efeaf5;
+    --dim: #786f80;
+    --line: #2a2632;
+    --hot: #ff4d8d;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    overflow-x: hidden; min-height: 100%;
+  }
+  .wrap { max-width: 560px; width: 100%; margin: 0 auto; padding: 30px 22px calc(50px + env(safe-area-inset-bottom)); }
+
+  .brand { display: flex; align-items: center; gap: 13px; margin-bottom: 6px; }
+  .brand svg { width: 48px; height: 48px; flex-shrink: 0; }
+  .mark { font-size: 11px; letter-spacing: 5px; color: var(--hot); text-transform: uppercase; margin-bottom: 10px; }
+  h1 { font-size: 40px; font-weight: 800; letter-spacing: -1.5px; line-height: 0.9; }
+  h1 em { font-style: normal; color: var(--dim); }
+  .sub { color: var(--dim); font-size: 12.5px; margin: 14px 0 26px; line-height: 1.55; }
+
+  .lbl { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--dim); margin-bottom: 12px; }
+
+  .tabs { display: flex; gap: 8px; margin-bottom: 26px; background: var(--panel); padding: 5px; border-radius: 8px; border: 1px solid var(--line); }
+  .tab {
+    flex: 1; background: transparent; border: none; color: var(--dim);
+    padding: 11px; border-radius: 5px; font-family: inherit; font-size: 12px;
+    letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
+  }
+  .tab.on { background: var(--hot); color: #1a0010; font-weight: 800; }
+
+  textarea {
+    width: 100%; background: var(--panel); border: 1px solid var(--line);
+    color: var(--ink); font-family: inherit; font-size: 16px; padding: 14px;
+    border-radius: 6px; resize: vertical; min-height: 84px; line-height: 1.5;
+  }
+  textarea:focus { outline: none; border-color: var(--hot); }
+
+  .preview {
+    margin: 14px 0 24px; padding: 12px 14px; background: #0e0c12;
+    border: 1px solid var(--line); border-radius: 6px;
+    font-size: 18px; letter-spacing: 2px; color: var(--hot);
+    min-height: 46px; word-break: break-all; line-height: 1.6;
+  }
+  .preview.empty { color: var(--dim); letter-spacing: 1px; font-size: 13px; }
+
+  .ctrl { margin-bottom: 22px; }
+  .ctrl-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 9px; }
+  .ctrl-top .lbl { margin-bottom: 0; }
+  .val { font-size: 13px; }
+  input[type=range] {
+    -webkit-appearance: none; appearance: none; width: 100%; height: 2px;
+    background: var(--line); border-radius: 2px;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none; width: 24px; height: 24px;
+    background: var(--hot); border-radius: 50%; cursor: pointer; border: 3px solid var(--bg);
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 24px; height: 24px; background: var(--hot); border-radius: 50%; cursor: pointer; border: 3px solid var(--bg);
+  }
+
+  .toggles { display: flex; gap: 10px; margin-bottom: 26px; }
+  .toggle {
+    flex: 1; background: var(--panel); border: 1px solid var(--line); color: var(--dim);
+    padding: 11px 6px; border-radius: 6px; font-family: inherit; font-size: 11px;
+    letter-spacing: 1px; text-transform: uppercase; cursor: pointer; text-align: center;
+  }
+  .toggle.on { color: var(--hot); border-color: var(--hot); background: #221019; }
+
+  .modes { display: flex; gap: 10px; margin-bottom: 24px; }
+  .mode {
+    flex: 1; background: var(--panel); border: 1px solid var(--line); color: var(--dim);
+    padding: 12px 6px; border-radius: 6px; font-family: inherit; font-size: 11px;
+    letter-spacing: 1px; text-transform: uppercase; cursor: pointer; text-align: center;
+  }
+  .mode.on { color: var(--hot); border-color: var(--hot); background: #221019; }
+
+  .go {
+    width: 100%; background: var(--hot); color: #1a0010; border: none; padding: 19px;
+    border-radius: 6px; font-family: inherit; font-size: 15px; font-weight: 800;
+    letter-spacing: 2px; text-transform: uppercase; cursor: pointer;
+  }
+  .go:active { transform: translateY(1px); }
+  .note { color: var(--dim); font-size: 11px; margin-top: 16px; line-height: 1.6; }
+  .note.center { text-align: center; }
+  .err { color: var(--hot); font-size: 12px; text-align: center; margin-top: 14px; min-height: 16px; }
+
+  .decode-readout { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 16px; margin-bottom: 24px; }
+  .dr-top { display: flex; justify-content: space-between; align-items: baseline; }
+  .dr-state { font-size: 13px; color: var(--dim); letter-spacing: 2px; }
+  .dr-state.hot { color: var(--hot); }
+  .band-meter { height: 4px; background: var(--line); border-radius: 3px; margin-top: 10px; overflow: hidden; }
+  .band-meter i { display: block; height: 100%; width: 0%; background: var(--hot); border-radius: 3px; transition: width 0.05s linear; }
+  .dr-wpm { font-size: 11px; color: var(--dim); margin-top: 12px; letter-spacing: 1px; }
+  .dr-sym { color: var(--ink); letter-spacing: 3px; }
+
+  /* ---- Send flash overlay ---- */
+  .flash { position: fixed; inset: 0; z-index: 100; display: none; background: #000; }
+  .flash.active { display: block; }
+  .flash .light { position: absolute; inset: 0; background: #000; }
+  .flash-bar {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 101;
+    padding: 18px 22px calc(18px + env(safe-area-inset-bottom));
+    display: flex; gap: 14px; align-items: center;
+    background: linear-gradient(transparent, rgba(0,0,0,0.85) 40%);
+    pointer-events: none;
+  }
+  .flash-bar.invert { background: linear-gradient(transparent, rgba(255,255,255,0.9) 40%); }
+  .now-sending { flex: 1; font-size: 12px; letter-spacing: 2px; color: #fff; mix-blend-mode: difference; }
+  .stopbtn {
+    pointer-events: auto; background: var(--hot); color: #1a0010; border: none;
+    padding: 12px 22px; border-radius: 6px; font-family: inherit; font-size: 13px;
+    font-weight: 800; letter-spacing: 2px; cursor: pointer;
+  }
+
+  /* ---- Decode stage ---- */
+  .dstage { position: fixed; inset: 0; z-index: 50; display: none; background: #050507; }
+  .dstage.live { display: block; }
+  #cam { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.28; }
+  .dstage-inner {
+    position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column;
+    padding: calc(14px + env(safe-area-inset-top)) 20px calc(20px + env(safe-area-inset-bottom));
+  }
+  .dhud { display: flex; justify-content: space-between; align-items: center; font-size: 11px; letter-spacing: 2px; color: var(--dim); }
+  .exit {
+    background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.25);
+    padding: 9px 16px; border-radius: 5px; font-family: inherit; font-size: 11px; letter-spacing: 2px; cursor: pointer;
+  }
+  .lamp { width: 64px; height: 64px; border-radius: 50%; margin: 22px auto 6px; background: #1a1a22; border: 2px solid var(--line); }
+  .lamp.on { background: var(--hot); border-color: var(--hot); box-shadow: 0 0 40px var(--hot); }
+  .dwpm { text-align: center; font-size: 11px; letter-spacing: 2px; color: var(--dim); margin-bottom: 18px; }
+  .decoded-wrap { flex: 1; background: rgba(0,0,0,0.4); border: 1px solid var(--line); border-radius: 8px; padding: 18px; overflow-y: auto; }
+  .decoded { font-size: 24px; line-height: 1.5; letter-spacing: 2px; word-break: break-word; }
+  .decoded-live { font-size: 24px; letter-spacing: 2px; color: var(--hot); display: inline; }
+  .dbar { display: flex; gap: 12px; margin-top: 16px; }
+  .dbtn {
+    flex: 1; background: var(--panel); border: 1px solid var(--line); color: var(--ink);
+    padding: 14px; border-radius: 6px; font-family: inherit; font-size: 12px;
+    letter-spacing: 2px; text-transform: uppercase; cursor: pointer;
+  }
+  .dbtn:active { transform: translateY(1px); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">
+    <span id="logo"></span>
+    <div>
+      <div class="mark">morse signal lamp</div>
+      <h1>MINGO <em>MORSE</em></h1>
+    </div>
+  </div>
+  <div class="sub" id="tagline">Type a message and Mingo blinks it out in Morse, screen as the lamp. Or flip to Decode and Mingo reads Morse back into text &mdash; from a tone or a flashing light.</div>
+
+  <div class="tabs">
+    <button class="tab on" id="tabSend" data-tab="send">Send</button>
+    <button class="tab" id="tabDecode" data-tab="decode">Decode</button>
+  </div>
+
+  <!-- ============ SEND ============ -->
+  <div id="sendPanel">
+    <div class="lbl">Message</div>
+    <textarea id="msg" placeholder="HELLO" autocapitalize="characters" spellcheck="false">SOS</textarea>
+    <div id="preview" class="preview"></div>
+
+    <div class="ctrl">
+      <div class="ctrl-top"><div class="lbl">Speed</div><div class="val"><span id="wpmVal">12</span> wpm &mdash; dot <span id="dotVal">100</span>ms</div></div>
+      <input type="range" id="speed" min="5" max="40" value="12">
+    </div>
+    <div class="ctrl">
+      <div class="ctrl-top"><div class="lbl">Brightness</div><div class="val"><span id="brightVal">100</span>%</div></div>
+      <input type="range" id="bright" min="20" max="100" value="100">
+    </div>
+
+    <div class="toggles">
+      <button class="toggle on" id="tInvert">Light on dark</button>
+      <button class="toggle" id="tLoop">Loop</button>
+      <button class="toggle on" id="tBeep">Beep</button>
+    </div>
+
+    <button class="go" id="send">Flash it</button>
+    <div class="note center">Keep the screen awake. Faster speeds are harder to read by eye; 8&ndash;12 wpm is comfortable.</div>
+  </div>
+
+  <!-- ============ DECODE ============ -->
+  <div id="decodePanel" style="display:none">
+    <div class="lbl">Source</div>
+    <div class="modes">
+      <button class="mode on" id="srcSound" data-src="sound">Sound</button>
+      <button class="mode" id="srcLight" data-src="light">Light (camera)</button>
+    </div>
+
+    <div class="ctrl">
+      <div class="ctrl-top"><div class="lbl">Detection threshold</div><div class="val"><span id="thrVal">5</span></div></div>
+      <input type="range" id="thr" min="1" max="10" value="5">
+    </div>
+
+    <div class="ctrl">
+      <div class="ctrl-top"><div class="lbl">Speed lock</div><div class="val"><span id="lockVal">Adaptive</span></div></div>
+      <input type="range" id="lock" min="0" max="30" value="0">
+      <div class="note">Leave on Adaptive to auto-learn the sender's speed. If the first letter garbles (common when a message opens on a dash), set the speed here to lock it.</div>
+    </div>
+
+    <div class="decode-readout">
+      <div class="dr-top"><span class="lbl" style="margin:0">Signal</span><span class="dr-state" id="drState">&mdash;</span></div>
+      <div class="band-meter"><i id="sigMeter"></i></div>
+      <div class="dr-wpm">est. speed <span id="wpmEst">&mdash;</span> &nbsp;|&nbsp; <span id="curSym" class="dr-sym"></span></div>
+    </div>
+
+    <button class="go" id="startDecode">Start decoding</button>
+    <div class="err" id="errDecode"></div>
+    <div class="note">Sound: point the mic at the source &mdash; a tone, a beeper, another phone. Light: aim the camera at the flashing source in a darkish room (slow Morse works best). Add to Home Screen for fullscreen.</div>
+  </div>
+</div>
+
+<!-- send flash overlay -->
+<div class="flash" id="flash">
+  <div class="light" id="light"></div>
+  <div class="flash-bar" id="flashBar">
+    <div class="now-sending" id="nowSending"></div>
+    <button class="stopbtn" id="stop">Stop</button>
+  </div>
+</div>
+
+<!-- decode stage -->
+<div class="dstage" id="dstage">
+  <video id="cam" playsinline muted style="display:none"></video>
+  <div class="dstage-inner">
+    <div class="dhud"><span id="dhudSrc">SOUND</span><button class="exit" id="dexit">EXIT</button></div>
+    <div class="lamp" id="lamp"></div>
+    <div class="dwpm">speed <span id="dwpm">&mdash;</span> wpm</div>
+    <div class="decoded-wrap">
+      <span class="decoded" id="decoded"></span><span class="decoded-live" id="decodedLive"></span>
+    </div>
+    <div class="dbar">
+      <button class="dbtn" id="dClear">Clear</button>
+      <button class="dbtn" id="dRecal">Recalibrate</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  var $ = function(id){ return document.getElementById(id); };
+
+  // ---- Mingo logo (lit-eye flamingo) ----
+  function mingoInner(badge){
+    var s = "";
+    if(badge){ s += '<rect width="100" height="100" rx="22" fill="#0e0e10"/>'; }
+    s += '<path d="M50 84 C48 70 47 60 49 52 C40 50 33 44 33 35 C33 25 41 18 51 18 C62 18 70 26 70 36 C70 45 63 51 56 52 C58 62 58 72 57 84 Z" fill="#ff4d8d"/>';
+    s += '<path d="M52 84 L52 92 M48 92 L58 92" stroke="#ff4d8d" stroke-width="4" stroke-linecap="round"/>';
+    s += '<path d="M64 32 L82 38 L64 42 Z" fill="#ffb000"/>';
+    s += '<path d="M70 40 L82 38 L72 45 Z" fill="#111"/>';
+    s += '<circle cx="47" cy="32" r="6.5" fill="#fff" opacity="0.25"/>';
+    s += '<circle cx="47" cy="32" r="4.2" fill="#fff" opacity="0.5"/>';
+    s += '<circle cx="47" cy="32" r="2.8" fill="#ffffff"/>';
+    return s;
+  }
+  function mingoSVG(badge){ return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">' + mingoInner(badge) + '</svg>'; }
+  function iconDataURL(){ return "data:image/svg+xml;base64," + btoa(mingoSVG(true)); }
+  $("logo").innerHTML = mingoSVG(false);
+
+  var MORSE = {
+    A:".-",B:"-...",C:"-.-.",D:"-..",E:".",F:"..-.",G:"--.",H:"....",I:"..",J:".---",K:"-.-",L:".-..",M:"--",N:"-.",O:"---",P:".--.",Q:"--.-",R:".-.",S:"...",T:"-",U:"..-",V:"...-",W:".--",X:"-..-",Y:"-.--",Z:"--..",
+    "0":"-----","1":".----","2":"..---","3":"...--","4":"....-","5":".....","6":"-....","7":"--...","8":"---..","9":"----.",
+    ".":".-.-.-",",":"--..--","?":"..--..","'":".----.","!":"-.-.--","/":"-..-.","(":"-.--.",")":"-.--.-","&":".-...",":":"---...",";":"-.-.-.","=":"-...-","+":".-.-.","-":"-....-","_":"..--.-",'"':".-..-.","@":".--.-."
+  };
+  var REV_MORSE = (function(){ var r = {}; for(var k in MORSE){ r[MORSE[k]] = k; } return r; })();
+
+  // ---- Tabs ----
+  function setTab(t){
+    $("tabSend").className = "tab" + (t==="send"?" on":"");
+    $("tabDecode").className = "tab" + (t==="decode"?" on":"");
+    $("sendPanel").style.display = t==="send" ? "block" : "none";
+    $("decodePanel").style.display = t==="decode" ? "block" : "none";
+  }
+  $("tabSend").addEventListener("click", function(){ setTab("send"); });
+  $("tabDecode").addEventListener("click", function(){ setTab("decode"); });
+
+  // ====================================================================
+  //  SEND  (screen-as-lamp Morse transmitter)
+  // ====================================================================
+  var msg = $("msg"), preview = $("preview"), speed = $("speed"), bright = $("bright");
+  var flash = $("flash"), light = $("light"), flashBar = $("flashBar"), nowSending = $("nowSending");
+  var opts = { invert: true, loop: false, beep: true };
+  var sending = false, stopFlag = false, sndCtx = null, sndOsc = null, sndGain = null, sendWake = null;
+
+  function dotMs(){ return Math.round(1200 / parseInt(speed.value, 10)); }
+  function toMorse(text){
+    var out = [], up = text.toUpperCase(), i, ch;
+    for(i = 0; i < up.length; i++){ ch = up[i]; if(ch === " "){ out.push(" "); } else if(MORSE[ch]){ out.push(MORSE[ch]); } }
+    return out;
+  }
+  function renderPreview(){
+    var seq = toMorse(msg.value);
+    if(!seq.length || !msg.value.trim()){ preview.className = "preview empty"; preview.textContent = "Morse appears here as you type"; }
+    else { preview.className = "preview"; preview.textContent = seq.join("   ").replace(/\./g, "\u2022"); }
+  }
+  function setToggle(btn, key){
+    btn.addEventListener("click", function(){
+      opts[key] = !opts[key];
+      btn.className = "toggle" + (opts[key] ? " on" : "");
+      if(key === "invert"){ flashBar.className = "flash-bar" + (opts[key] ? "" : " invert"); }
+    });
+  }
+  setToggle($("tInvert"), "invert"); setToggle($("tLoop"), "loop"); setToggle($("tBeep"), "beep");
+
+  function updateLabels(){ $("wpmVal").textContent = speed.value; $("dotVal").textContent = dotMs(); $("brightVal").textContent = bright.value; }
+  speed.addEventListener("input", updateLabels);
+  bright.addEventListener("input", updateLabels);
+  msg.addEventListener("input", renderPreview);
+
+  function sleep(ms){ return new Promise(function(res){ setTimeout(res, ms); }); }
+  function litColor(){ var b = parseInt(bright.value,10)/100, v = Math.round(255*b); return opts.invert ? "rgb("+v+","+v+","+v+")" : "#000"; }
+  function darkColor(){ if(opts.invert) return "#000"; var b = parseInt(bright.value,10)/100, v = Math.round(255*b); return "rgb("+v+","+v+","+v+")"; }
+
+  function ensureAudio(){
+    if(!opts.beep) return;
+    if(!sndCtx){ try { sndCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){ sndCtx = null; } }
+    if(sndCtx && sndCtx.state === "suspended"){ sndCtx.resume(); }
+  }
+  function beepOn(){
+    if(!opts.beep || !sndCtx) return;
+    sndOsc = sndCtx.createOscillator(); sndGain = sndCtx.createGain();
+    sndOsc.type = "sine"; sndOsc.frequency.value = 620; sndGain.gain.value = 0.18;
+    sndOsc.connect(sndGain); sndGain.connect(sndCtx.destination); sndOsc.start();
+  }
+  function beepOff(){ if(sndOsc){ try { sndOsc.stop(); } catch(e){} sndOsc = null; } }
+  function on(){ light.style.background = litColor(); beepOn(); }
+  function off(){ light.style.background = darkColor(); beepOff(); }
+
+  function openFlash(){ flash.classList.add("active"); flashBar.className = "flash-bar" + (opts.invert ? "" : " invert"); off(); requestSendWake(); }
+  function closeFlash(){ stopFlag = true; sending = false; beepOff(); flash.classList.remove("active"); releaseSendWake(); }
+
+  async function play(){
+    var seq = toMorse(msg.value);
+    if(!seq.length){ return; }
+    var d = dotMs(), dash = d*3, gapSym = d, gapLetter = d*3, gapWord = d*7;
+    do {
+      var i, j, sym, code;
+      for(i = 0; i < seq.length && !stopFlag; i++){
+        code = seq[i];
+        nowSending.textContent = "SENDING \u2014 " + code.replace(/\./g,"\u2022");
+        if(code === " "){ off(); await sleep(gapWord); continue; }
+        for(j = 0; j < code.length && !stopFlag; j++){
+          sym = code[j]; on(); await sleep(sym === "." ? d : dash); off();
+          if(j < code.length - 1){ await sleep(gapSym); }
+        }
+        if(i < seq.length - 1 && seq[i+1] !== " "){ await sleep(gapLetter); }
+      }
+      if(opts.loop && !stopFlag){ off(); await sleep(gapWord); }
+    } while(opts.loop && !stopFlag);
+    off(); nowSending.textContent = "DONE"; await sleep(500);
+    if(!stopFlag){ closeFlash(); }
+  }
+
+  $("send").addEventListener("click", function(){
+    if(!msg.value.trim()){ msg.focus(); return; }
+    if(sending) return;
+    ensureAudio(); sending = true; stopFlag = false; openFlash(); setTimeout(play, 300);
+  });
+  $("stop").addEventListener("click", closeFlash);
+
+  function requestSendWake(){ try { if("wakeLock" in navigator){ navigator.wakeLock.request("screen").then(function(w){ sendWake = w; }).catch(function(){}); } } catch(e){} }
+  function releaseSendWake(){ if(sendWake){ try{ sendWake.release(); }catch(e){} sendWake = null; } }
+
+  // ====================================================================
+  //  DECODE  (sound via mic FFT, or light via camera brightness)
+  // ====================================================================
+  var dec = { src: "sound", thr: 5 };
+  $("srcSound").addEventListener("click", function(){ dec.src="sound"; $("srcSound").className="mode on"; $("srcLight").className="mode"; });
+  $("srcLight").addEventListener("click", function(){ dec.src="light"; $("srcLight").className="mode on"; $("srcSound").className="mode"; });
+  $("thr").addEventListener("input", function(e){ dec.thr = parseInt(e.target.value,10); $("thrVal").textContent = dec.thr; });
+  $("lock").addEventListener("input", function(e){
+    var w = parseInt(e.target.value,10); D.manualWpm = w;
+    $("lockVal").textContent = w === 0 ? "Adaptive" : (w + " wpm");
+    if(D.running){ recalcUnit(); render(); }
+  });
+
+  var D = {
+    on: false, lastEdge: -1, started: -1,
+    allOns: [], pulses: [], letters: [],
+    unit: 0, manualWpm: 0, text: "",
+    audioCtx: null, analyser: null, freqData: null, micStream: null,
+    camStream: null, video: null, ccanvas: null, cctx: null,
+    rafId: null, running: false, baseline: 0, wakeLock: null
+  };
+
+  function recalcUnit(){
+    if(D.manualWpm > 0){ D.unit = 1200 / D.manualWpm; return; }
+    if(D.allOns.length < 1) return;
+    D.unit = Math.min.apply(null, D.allOns);   // shortest pulse approximates one dot
+  }
+  function showWpm(){
+    var wpm = D.unit > 0 ? Math.round(1200 / D.unit) : 0;
+    $("dwpm").textContent = D.manualWpm > 0 ? (D.manualWpm + " (locked)") : (wpm || "\u2014");
+    $("wpmEst").textContent = wpm ? wpm + " wpm" : "\u2014";
+  }
+  function classifyPulse(ms){ return ms < D.unit * 2 ? "." : "-"; }
+  function decodeLetter(arr){ var c = ""; for(var i=0;i<arr.length;i++){ c += classifyPulse(arr[i]); } return REV_MORSE[c] || "\u00bf"; }
+
+  function render(){
+    var out = "", i;
+    for(i = 0; i < D.letters.length; i++){ out += (D.letters[i] === "SP") ? " " : decodeLetter(D.letters[i]); }
+    D.text = out;
+    $("decoded").textContent = out;
+    var live = "";
+    for(i = 0; i < D.pulses.length; i++){ live += (classifyPulse(D.pulses[i]) === "." ? "\u2022" : "\u2013"); }
+    $("decodedLive").textContent = live;
+    $("curSym").textContent = live;
+    var wrap = $("decoded").parentNode; wrap.scrollTop = wrap.scrollHeight;
+    showWpm();
+  }
+  function commitLetter(){ if(D.pulses.length){ D.letters.push(D.pulses.slice()); D.pulses = []; } }
+  function commitWord(){ commitLetter(); if(D.letters.length && D.letters[D.letters.length-1] !== "SP"){ D.letters.push("SP"); } }
+
+  function feedSignal(present){
+    var now = performance.now();
+    $("lamp").className = "lamp" + (present ? " on" : "");
+    $("drState").className = "dr-state" + (present ? " hot" : "");
+    $("drState").textContent = present ? "ON" : "\u2014";
+    if(present === D.on){
+      if(!present && D.lastEdge >= 0 && now - D.lastEdge > 1500 && D.pulses.length){ commitWord(); render(); }
+      return;
+    }
+    var dur = D.lastEdge >= 0 ? now - D.lastEdge : 0;
+    if(D.on && dur > 0){
+      D.allOns.push(dur); if(D.allOns.length > 60) D.allOns.shift();
+      recalcUnit(); D.pulses.push(dur); render();
+    } else if(!D.on && dur > 0 && D.started >= 0){
+      var g = D.unit > 0 ? (dur < D.unit*2 ? 0 : (dur < D.unit*5 ? 1 : 2)) : 0;
+      if(g === 1){ commitLetter(); render(); }
+      else if(g === 2){ commitWord(); render(); }
+    }
+    D.on = present; D.lastEdge = now;
+    if(present && D.started < 0) D.started = now;
+  }
+
+  function decThresholdFrac(){ return 0.30 + (10 - dec.thr) * 0.045; }
+  function decodeSoundFrame(){
+    D.analyser.getByteFrequencyData(D.freqData);
+    var binHz = D.audioCtx.sampleRate / D.analyser.fftSize;
+    var lo = Math.floor(300/binHz), hi = Math.ceil(3000/binHz), peak = 0, j;
+    for(j = lo; j <= hi && j < D.freqData.length; j++){ if(D.freqData[j] > peak) peak = D.freqData[j]; }
+    var norm = peak / 255;
+    $("sigMeter").style.width = Math.min(100, norm*130) + "%";
+    feedSignal(norm > decThresholdFrac());
+  }
+  function decodeLightFrame(){
+    if(D.video.readyState < 2) return;
+    D.cctx.drawImage(D.video, 0, 0, 64, 48);
+    var px = D.cctx.getImageData(0, 0, 64, 48).data, sum = 0, i;
+    for(i = 0; i < px.length; i += 4){ sum += (px[i]*0.3 + px[i+1]*0.59 + px[i+2]*0.11); }
+    var avg = (sum / (px.length/4)) / 255;
+    if(D.baseline === 0) D.baseline = avg;
+    D.baseline = Math.min(D.baseline, avg) * 0.98 + avg * 0.02;
+    var rise = avg - D.baseline;
+    $("sigMeter").style.width = Math.min(100, rise*400) + "%";
+    feedSignal(rise > (0.10 + (10-dec.thr)*0.02));
+  }
+  function decodeLoop(){
+    if(!D.running) return;
+    if(dec.src === "sound") decodeSoundFrame(); else decodeLightFrame();
+    var now = performance.now();
+    if(!D.on && D.lastEdge >= 0 && now - D.lastEdge > 1800 && D.pulses.length){ commitWord(); render(); }
+    D.rafId = requestAnimationFrame(decodeLoop);
+  }
+
+  function startDecode(){
+    $("errDecode").textContent = "";
+    D.text = ""; D.pulses = []; D.letters = []; D.allOns = [];
+    D.unit = 0; D.on = false; D.lastEdge = -1; D.started = -1; D.baseline = 0;
+    if(D.manualWpm > 0){ D.unit = 1200 / D.manualWpm; }
+    render();
+    $("dhudSrc").textContent = dec.src.toUpperCase();
+    $("dwpm").textContent = "\u2014";
+
+    if(dec.src === "sound"){
+      $("cam").style.display = "none";
+      navigator.mediaDevices.getUserMedia({ audio: { echoCancellation:false, noiseSuppression:false, autoGainControl:false } })
+      .then(function(stream){
+        D.micStream = stream;
+        D.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        var go = function(){
+          var src = D.audioCtx.createMediaStreamSource(stream);
+          D.analyser = D.audioCtx.createAnalyser();
+          D.analyser.fftSize = 2048; D.analyser.smoothingTimeConstant = 0.1;
+          src.connect(D.analyser);
+          D.freqData = new Uint8Array(D.analyser.frequencyBinCount);
+          launchDecodeStage();
+        };
+        if(D.audioCtx.state === "suspended"){ D.audioCtx.resume().then(go); } else { go(); }
+      })
+      .catch(function(){ $("errDecode").textContent = "Mic blocked. Allow microphone access and try again."; });
+    } else {
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+      .then(function(stream){
+        D.camStream = stream; D.video = $("cam"); D.video.srcObject = stream;
+        D.video.style.display = "block"; D.video.play();
+        D.ccanvas = document.createElement("canvas"); D.ccanvas.width = 64; D.ccanvas.height = 48;
+        D.cctx = D.ccanvas.getContext("2d", { willReadFrequently: true });
+        launchDecodeStage();
+      })
+      .catch(function(){ $("errDecode").textContent = "Camera blocked. Allow camera access and try again."; });
+    }
+  }
+  function launchDecodeStage(){ $("dstage").classList.add("live"); D.running = true; requestDecodeWake(); decodeLoop(); }
+  function stopDecode(){
+    D.running = false;
+    if(D.rafId){ cancelAnimationFrame(D.rafId); D.rafId = null; }
+    if(D.micStream){ D.micStream.getTracks().forEach(function(t){ t.stop(); }); D.micStream = null; }
+    if(D.camStream){ D.camStream.getTracks().forEach(function(t){ t.stop(); }); D.camStream = null; }
+    if(D.audioCtx){ D.audioCtx.close(); D.audioCtx = null; }
+    if(D.video){ D.video.srcObject = null; }
+    $("dstage").classList.remove("live"); releaseDecodeWake();
+  }
+  $("startDecode").addEventListener("click", startDecode);
+  $("dexit").addEventListener("click", stopDecode);
+  $("dClear").addEventListener("click", function(){ D.text = ""; D.pulses = []; D.letters = []; render(); });
+  $("dRecal").addEventListener("click", function(){ D.unit = 0; D.allOns = []; commitLetter(); render(); });
+
+  function requestDecodeWake(){ try { if("wakeLock" in navigator){ navigator.wakeLock.request("screen").then(function(w){ D.wakeLock = w; }).catch(function(){}); } } catch(e){} }
+  function releaseDecodeWake(){ if(D.wakeLock){ try{ D.wakeLock.release(); }catch(e){} D.wakeLock = null; } }
+  document.addEventListener("visibilitychange", function(){
+    if(document.visibilityState === "visible"){
+      if(D.running) requestDecodeWake();
+      if(sending) requestSendWake();
+    }
+  });
+
+  // ---- PWA: icon, manifest, service worker ----
+  (function pwa(){
+    var icon = iconDataURL();
+    $("appleIcon").href = icon;
+    var manifest = {
+      name: "MINGO MORSE", short_name: "MINGO MORSE", display: "standalone",
+      background_color: "#0e0e10", theme_color: "#0e0e10", orientation: "any",
+      start_url: ".", icons: [
+        { src: icon, sizes: "192x192", type: "image/svg+xml", purpose: "any" },
+        { src: icon, sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" }
+      ]
+    };
+    var mlink = document.createElement("link");
+    mlink.rel = "manifest";
+    mlink.href = URL.createObjectURL(new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" }));
+    document.head.appendChild(mlink);
+    if("serviceWorker" in navigator){
+      var sw = 'self.addEventListener("install",function(e){self.skipWaiting()});' +
+               'self.addEventListener("activate",function(e){self.clients.claim()});' +
+               'self.addEventListener("fetch",function(e){e.respondWith(fetch(e.request).catch(function(){return caches.match(e.request)}))});';
+      navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw], { type: "text/javascript" }))).catch(function(){});
+    }
+  })();
+
+  updateLabels();
+  renderPreview();
+</script>
+</body>
+</html>
